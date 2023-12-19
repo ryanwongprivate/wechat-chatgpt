@@ -4,22 +4,24 @@ import { ChatGPTBot } from "./bot.js";
 import {config} from "./config.js";
 const chatGPTBot = new ChatGPTBot();
 
-const bot =  WechatyBuilder.build({
-  name: "wechat-assistant", // generate xxxx.memory-card.json and save login data for the next login
-  puppet: "wechaty-puppet-wechat",
-  puppetOptions: {
-    uos: true
-  }
+const name = 'wechat-assistant';
+let padLocalToken = '' // 如果申请了ipadlocal的token,可以直接填入
+
+console.log('读取到ipad token 使用ipad协议启动');
+const bot = WechatyBuilder.build({
+    name, // generate xxxx.memory-card.json and save login data for the next login
+    puppetOptions: {
+        token: padLocalToken
+    }, puppet: 'wechaty-puppet-padlocal',
 });
+
 async function main() {
   const initializedAt = Date.now()
   bot
     .on("scan", async (qrcode, status) => {
-      const url = `https://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`;
+      //const url = `https://wechaty.js.org/qrcode/${encodeURIComponent(qrcode)}`;
+      const url = ['https://api.qrserver.com/v1/create-qr-code/?data=',encodeURIComponent(qrcode)].join('')
       console.log(`Scan QR Code to login: ${status}\n${url}`);
-      console.log(
-        await QRCode.toString(qrcode, { type: "terminal", small: true })
-      );
     })
     .on("login", async (user) => {
       chatGPTBot.setBotName(user.name());
